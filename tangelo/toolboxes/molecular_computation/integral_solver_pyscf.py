@@ -34,9 +34,11 @@ def mol_to_pyscf(mol, basis="CRENBL", symmetry=False, ecp=None):
     from pyscf import gto
 
     pymol = gto.Mole(atom=mol.xyz)
-    pymol.basis = basis
+    pymol.basis = mol.basis
     pymol.charge = mol.q
     pymol.spin = mol.spin
+    from pyscf.symm import geom
+    geom.TOLERANCE = 0.005
     pymol.symmetry = symmetry
     pymol.ecp = ecp if ecp else dict()
     pymol.build()
@@ -153,17 +155,18 @@ class IntegralSolverPySCF(IntegralSolver):
         """
 
         molecule = mol_to_pyscf(sqmol, sqmol.basis, sqmol.symmetry, sqmol.ecp)
-
+        self.chkfile = sqmol.chkfile
         if self.newton:
             sqmol.mean_field = self.scf.RHF(molecule).newton() if not sqmol.uhf else self.scf.UHF(molecule)
         else:
             sqmol.mean_field = self.scf.RHF(molecule) if not sqmol.uhf else self.scf.UHF(molecule)
         sqmol.mean_field.verbose = 0
+        sqmol.mean_field.max_cycle = 500
+        sqmol.mean_field.conv_tol = 1e-10
 
         chkfile_found = False
         if self.chkfile:
             chkfile_found = os.path.exists(self.chkfile)
-            sqmol.mean_field.chkfile = self.chkfile
 
         # Force broken symmetry for uhf calculation when spin is 0 as shown in
         # https://github.com/sunqm/pyscf/blob/master/examples/scf/32-break_spin_symm.py
@@ -174,7 +177,8 @@ class IntegralSolverPySCF(IntegralSolver):
             sqmol.mean_field.kernel(dm)
         else:
             sqmol.mean_field.init_guess = "chkfile" if chkfile_found else "minao"
-            sqmol.mean_field.kernel()
+            dm = sqmol.mean_field.from_chk(self.chkfile)
+            sqmol.mean_field.kernel(dm)
 
         sqmol.mean_field.analyze()
         if not sqmol.mean_field.converged:
@@ -385,11 +389,13 @@ class IntegralSolverPySCFQMMM(IntegralSolverPySCF):
 
         sqmol.mean_field = self.qmmm.mm_charge(mean_field, self.coords, self.charges)
         sqmol.mean_field.verbose = 0
+        sqmol.mean_field.max_cycle = 500
+        sqmol.mean_field.conv_tol = 1e-10
+
 
         chkfile_found = False
         if self.chkfile:
             chkfile_found = os.path.exists(self.chkfile)
-            sqmol.mean_field.chkfile = self.chkfile
 
         # Force broken symmetry for uhf calculation when spin is 0 as shown in
         # https://github.com/sunqm/pyscf/blob/master/examples/scf/32-break_spin_symm.py
@@ -400,7 +406,8 @@ class IntegralSolverPySCFQMMM(IntegralSolverPySCF):
             sqmol.mean_field.kernel(dm)
         else:
             sqmol.mean_field.init_guess = "chkfile" if chkfile_found else "minao"
-            sqmol.mean_field.kernel()
+            dm = sqmol.mean_field.from_chk(self.chkfile)
+            sqmol.mean_field.kernel(dm)
 
         sqmol.mean_field.analyze()
         if not sqmol.mean_field.converged:

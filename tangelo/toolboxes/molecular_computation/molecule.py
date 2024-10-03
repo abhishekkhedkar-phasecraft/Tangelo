@@ -215,6 +215,7 @@ class SecondQuantizedMolecule(Molecule):
     ecp: dict = field(default_factory=dict)
     symmetry: bool = False
     uhf: bool = False
+    chkfile: str = ""
     frozen_orbitals: list or int = field(default="frozen_core", repr=False)
 
     # Defined in __post_init__.
