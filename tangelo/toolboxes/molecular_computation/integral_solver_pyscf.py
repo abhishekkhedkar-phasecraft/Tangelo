@@ -37,12 +37,17 @@ def mol_to_pyscf(mol, basis="CRENBL", symmetry=False, ecp=None):
     pymol.basis = mol.basis
     pymol.charge = mol.q
     pymol.spin = mol.spin
-    from pyscf.symm import geom
+    from pyscf.symm import geom, msym
     geom.TOLERANCE = 0.005
     pymol.symmetry = symmetry
     pymol.ecp = ecp if ecp else dict()
     pymol.build()
-
+    try:
+        pymol = msym.gen_mol_msym(pymol)
+    except Exception as e:
+        print(e)
+        pymol = msym.gen_mol_msym(pymol, tol=1e-9)
+        print("Tolerance for msymm set to 1e-9")
     return pymol
 
 
