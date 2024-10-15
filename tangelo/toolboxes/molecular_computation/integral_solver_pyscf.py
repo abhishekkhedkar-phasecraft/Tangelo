@@ -42,12 +42,13 @@ def mol_to_pyscf(mol, basis="CRENBL", symmetry=False, ecp=None):
     pymol.symmetry = symmetry
     pymol.ecp = ecp if ecp else dict()
     pymol.build()
-    try:
-        pymol = msym.gen_mol_msym(pymol)
-    except Exception as e:
-        print(e)
-        pymol = msym.gen_mol_msym(pymol, tol=1e-9)
-        print("Tolerance for msymm set to 1e-9")
+    if symmetry:
+        try:
+            pymol = msym.gen_mol_msym(pymol)
+        except Exception as e:
+            print(e)
+            pymol = msym.gen_mol_msym(pymol, tol=1e-9)
+            print("Tolerance for msymm set to 1e-9")
     return pymol
 
 
