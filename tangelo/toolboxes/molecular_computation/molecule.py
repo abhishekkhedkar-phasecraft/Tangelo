@@ -216,6 +216,7 @@ class SecondQuantizedMolecule(Molecule):
     symmetry: bool = False
     uhf: bool = False
     chkfile: str = ""
+    guess_density: str = ""
     frozen_orbitals: list or int = field(default="frozen_core", repr=False)
 
     # Defined in __post_init__.
