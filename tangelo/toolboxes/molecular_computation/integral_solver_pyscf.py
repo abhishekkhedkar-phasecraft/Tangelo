@@ -190,6 +190,8 @@ class IntegralSolverPySCF(IntegralSolver):
             # sqmol.mean_field.init_guess = "chkfile" if chkfile_found else "minao"
             dm = sqmol.mean_field.from_chk(self.chkfile) if chkfile_found else None
             dm = np.load(self.guess_density) if guessdensity_found else dm
+            if guessdensity_found:
+                print(f"reading guess density from {self.guess_density} ")
             sqmol.mean_field.kernel(dm)
 
         sqmol.mean_field.analyze()
