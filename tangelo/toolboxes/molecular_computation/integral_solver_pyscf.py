@@ -46,9 +46,14 @@ def mol_to_pyscf(mol, basis="CRENBL", symmetry=False, ecp=None):
         try:
             pymol = msym.gen_mol_msym(pymol)
         except Exception as e:
-            print(e)
-            pymol = msym.gen_mol_msym(pymol, tol=1e-9)
-            print("Tolerance for msymm set to 1e-9")
+            # print(e)
+            print("Default tol 1e-14 failed\nTolerance for msymm relaxed to 1e-9")
+            try:
+                pymol = msym.gen_mol_msym(pymol, tol=1e-9)
+            except Exception as e_:
+                # print(e_)
+                print("persistent Msym failure, switching msym off")
+                print(f"pymol.topgroup: {pymol.topgroup}, pymol.groupname: {pymol.groupname}")
     return pymol
 
 
