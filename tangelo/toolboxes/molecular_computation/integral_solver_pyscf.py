@@ -170,12 +170,13 @@ class IntegralSolverPySCF(IntegralSolver):
         self.chkfile = sqmol.chkfile
         self.guess_density = sqmol.guess_density
         if self.newton:
-            sqmol.mean_field = self.scf.RHF(molecule).newton() if not sqmol.uhf else self.scf.UHF(molecule)
+            sqmol.mean_field = self.scf.RHF(molecule).newton() if not sqmol.uhf else self.scf.UHF(molecule).newton()
         else:
             sqmol.mean_field = self.scf.RHF(molecule) if not sqmol.uhf else self.scf.UHF(molecule)
         sqmol.mean_field.verbose = 0
-        sqmol.mean_field.max_cycle = 500
-        sqmol.mean_field.conv_tol = 1e-10
+        sqmol.mean_field.max_cycle = 750
+        sqmol.mean_field.conv_tol = 1e-12
+        sqmol.mean_field.damp = 0.75
 
         chkfile_found = False
         guessdensity_found = False
