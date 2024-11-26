@@ -38,22 +38,28 @@ def mol_to_pyscf(mol, basis="CRENBL", symmetry=False, ecp=None):
     pymol.charge = mol.q
     pymol.spin = mol.spin
     from pyscf.symm import geom, msym
-    geom.TOLERANCE = 0.005
+    geom.TOLERANCE = 0.001
     pymol.symmetry = symmetry
     pymol.ecp = ecp if ecp else dict()
     pymol.build()
+    print(f"Before libmsym pymol.topgroup: {pymol.topgroup}, pymol.groupname: {pymol.groupname}")
+    set_libmsym = False
     if symmetry:
+        set_libmsym = True
         try:
             pymol = msym.gen_mol_msym(pymol)
         except Exception as e:
-            # print(e)
+            print(e)
             print("Default tol 1e-14 failed\nTolerance for msymm relaxed to 1e-9")
             try:
                 pymol = msym.gen_mol_msym(pymol, tol=1e-9)
             except Exception as e_:
-                # print(e_)
+                print(e_)
                 print("persistent Msym failure, switching msym off")
+                set_libmsym = False
                 print(f"pymol.topgroup: {pymol.topgroup}, pymol.groupname: {pymol.groupname}")
+    print(f"after attempting libmsym pymol.topgroup: {pymol.topgroup}, pymol.groupname: {pymol.groupname}")
+    print(f"{set_libmsym=}")
     return pymol
 
 
@@ -203,7 +209,13 @@ class IntegralSolverPySCF(IntegralSolver):
             raise ValueError("Hartree-Fock calculation did not converge")
 
         if sqmol.symmetry:
-            self.assign_mo_coeff_symmetries(sqmol)
+            try:
+                self.assign_mo_coeff_symmetries(sqmol)
+            except Exception as e:
+                print(f"Error in assigning symmetries: {e}")
+                print("Symmetry assignment to mo_coeff failed, continuing without symmetries")
+                sqmol.mo_symm_ids = None
+                sqmol.mo_symm_labels = None
         else:
             sqmol.mo_symm_ids = None
             sqmol.mo_symm_labels = None
