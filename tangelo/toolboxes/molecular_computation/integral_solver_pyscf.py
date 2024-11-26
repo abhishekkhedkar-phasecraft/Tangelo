@@ -181,7 +181,7 @@ class IntegralSolverPySCF(IntegralSolver):
             sqmol.mean_field = self.scf.RHF(molecule) if not sqmol.uhf else self.scf.UHF(molecule)
         sqmol.mean_field.verbose = 0
         sqmol.mean_field.max_cycle = 750
-        sqmol.mean_field.conv_tol = 1e-12
+        sqmol.mean_field.conv_tol = 1e-10
         chkfile_found = False
         guessdensity_found = False
         if self.guess_density:
@@ -204,6 +204,9 @@ class IntegralSolverPySCF(IntegralSolver):
                 print(f"reading guess density from {self.guess_density} ")
             sqmol.mean_field.kernel(dm)
 
+        if not sqmol.mean_field.converged:
+            sqmol.mean_field.level_shift = 0.1
+            sqmol.mean_field.kernel(sqmol.mean_field.make_rdm1())
         sqmol.mean_field.analyze()
         if not sqmol.mean_field.converged:
             raise ValueError("Hartree-Fock calculation did not converge")
