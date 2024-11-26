@@ -186,6 +186,7 @@ class IntegralSolverPySCF(IntegralSolver):
         guessdensity_found = False
         if self.guess_density:
             guessdensity_found = os.path.exists(self.guess_density)
+            sqmol.mean_field.damp = 0.7
         if self.chkfile:
             chkfile_found = os.path.exists(self.chkfile)
 
